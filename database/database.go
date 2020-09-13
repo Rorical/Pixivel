@@ -22,16 +22,16 @@ func GetDB() *Database {
 }
 
 func (self Database) Migrate() {
-	self.db.AutoMigrate(&Illust{}, &MetaPages{}, &User{}, &Tag{})
+	self.db.AutoMigrate(&DataIllust{}, &DataMetaPage{}, &DataUser{})
 }
 
 func (self Database) CreateIllust(illust *pixiv.Illust) {
 	var isNotExist bool
 	var metaLen int
 	metaLen = len(illust.MetaPages)
-	var newMetaPages []MetaPages = make([]MetaPages, metaLen)
+	var newMetaPages []MetaPage = make([]DataMetaPage, metaLen)
 	for j := 0; j < metaLen; j++ {
-		newMetaPages[j] = MetaPages{
+		newMetaPages[j] = DataMetaPage{
 			IllustID:     illust.ID,
 			SquareMedium: illust.MetaPages[j].Images.SquareMedium,
 			Medium:       illust.MetaPages[j].Images.Medium,
@@ -39,13 +39,12 @@ func (self Database) CreateIllust(illust *pixiv.Illust) {
 			Original:     illust.MetaPages[j].Images.Original,
 		}
 	}
-	newIllust := &Illust{
+	newIllust := &DataIllust{
 		ID:       illust.ID,
 		Title:    illust.Title,
 		Type:     illust.Type,
 		Caption:  illust.Caption,
 		Restrict: illust.Restrict,
-		User:     illust.User.ID,
 		//Tools          []string,
 		MetaPages:                      newMetaPages,
 		CreateData:                     illust.CreateData,
@@ -60,7 +59,6 @@ func (self Database) CreateIllust(illust *pixiv.Illust) {
 		MetaSinglePageOriginalImageURL: illust.MetaSinglePage.OriginalImageURL,
 		TotalView:                      illust.TotalView,
 		TotalBookmarks:                 illust.TotalBookmarks,
-		IsBookmarked:                   illust.IsBookmarked,
 		Visible:                        illust.Visible,
 		IsMuted:                        illust.IsMuted,
 		TotalComments:                  illust.TotalComments,
