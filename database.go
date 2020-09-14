@@ -29,7 +29,7 @@ func (self Database) CreateIllust(illust *pixiv.Illust) {
 	var isNotExist bool
 	var metaLen int
 	metaLen = len(illust.MetaPages)
-	var newMetaPages []MetaPage = make([]DataMetaPage, metaLen)
+	var newMetaPages []DataMetaPage = make([]DataMetaPage, metaLen)
 	for j := 0; j < metaLen; j++ {
 		newMetaPages[j] = DataMetaPage{
 			IllustID:     illust.ID,
