@@ -1,8 +1,9 @@
 package pixivel
 
 type DataTag struct {
-	ID   uint64 `gorm:"AUTO_INCREMENT,PRIMARY_KEY"`
-	Name string
+	ID      uint64 `gorm:"AUTO_INCREMENT,PRIMARY_KEY"`
+	Name    string
+	Illusts []DataIllust `gorm:"many2many:illusts_tags;"`
 }
 type DataUser struct {
 	ID                  uint64 `gorm:"PRIMARY_KEY"`
@@ -20,18 +21,17 @@ type DataMetaPage struct {
 	Original     string
 }
 type DataIllust struct {
-	ID                 uint64 `gorm:"PRIMARY_KEY"`
-	Title              string
-	Type               string
-	ImagesSquareMedium string
-	ImagesMedium       string
-	ImagesLarge        string
-	ImagesOriginal     string
-	Caption            string
-	Restrict           int
-	User               uint64
-	//Tags     []Tag
-	//Tools          []Tools
+	ID                             uint64 `gorm:"PRIMARY_KEY"`
+	Title                          string
+	Type                           string
+	ImagesSquareMedium             string
+	ImagesMedium                   string
+	ImagesLarge                    string
+	ImagesOriginal                 string
+	Caption                        string
+	Restrict                       int
+	User                           uint64
+	Tags                           []DataTag `gorm:"many2many:illusts_tags;"`
 	CreateData                     string
 	PageCount                      int
 	Width                          int
@@ -44,4 +44,17 @@ type DataIllust struct {
 	Visible                        bool
 	IsMuted                        bool
 	TotalComments                  int
+}
+type DataUgoiraMetadata struct {
+	ID             uint64                    `gorm:"PRIMARY_KEY"`
+	Frames         []DataUgoiraMetadataFrame `gorm:"foreignKey:UgoiraID"`
+	ZipURLMedium   string
+	ZipURLLarge    string
+	ZipURLOriginal string
+}
+
+type DataUgoiraMetadataFrame struct {
+	UgoiraID uint64
+	Delay    int
+	File     string
 }

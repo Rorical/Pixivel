@@ -40,12 +40,11 @@ func (self Database) CreateIllust(illust *pixiv.Illust) {
 		}
 	}
 	newIllust := &DataIllust{
-		ID:       illust.ID,
-		Title:    illust.Title,
-		Type:     illust.Type,
-		Caption:  illust.Caption,
-		Restrict: illust.Restrict,
-		//Tools          []string,
+		ID:                             illust.ID,
+		Title:                          illust.Title,
+		Type:                           illust.Type,
+		Caption:                        illust.Caption,
+		Restrict:                       illust.Restrict,
 		MetaPages:                      newMetaPages,
 		CreateData:                     illust.CreateData,
 		PageCount:                      illust.PageCount,
@@ -62,10 +61,6 @@ func (self Database) CreateIllust(illust *pixiv.Illust) {
 		Visible:                        illust.Visible,
 		IsMuted:                        illust.IsMuted,
 		TotalComments:                  illust.TotalComments,
-		//MetaPages:      newMetaPages,
-		//MetaSinglePage: MetaSinglePage{
-		//	OriginalImageURL: illust.MetaSinglePage.OriginalImageURL,
-		//},
 	}
 	isNotExist = self.db.NewRecord(newIllust)
 	if isNotExist {
