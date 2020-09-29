@@ -26,7 +26,7 @@ func (self Database) Migrate() {
 }
 
 func (self Database) CreateIllust(illust *pixiv.Illust) {
-	var isNotExist bool
+	var isExist bool
 	var metaLen int
 	metaLen = len(illust.MetaPages)
 	var newMetaPages []DataMetaPage = make([]DataMetaPage, metaLen)
@@ -62,13 +62,24 @@ func (self Database) CreateIllust(illust *pixiv.Illust) {
 		IsMuted:                        illust.IsMuted,
 		TotalComments:                  illust.TotalComments,
 	}
-	isNotExist = self.db.NewRecord(newIllust)
-	if isNotExist {
-		self.db.Create(newIllust)
-	} else {
-		self.db.Save(newIllust)
+	isExist = self.db.NewRecord(newIllust)
+	if isExist {
+		self.db.Save(&newIllust)
+		return
 	}
+	self.db.Create(&newIllust)
 
+	newUser := &DataUser{
+		ID:                  illust.User.ID,
+		Name:                illust.User.Name,
+		Account:             illust.User.Account,
+		ProfileImagesMedium: illust.User.ProfileImages.Medium,
+	}
+	isExist = self.db.NewRecord(newUser)
+	if isExist {
+		self.db.Save(&newUser)
+		return
+	}
 }
 
 func (self Database) QueryIllust(id uint64) *Illust {
