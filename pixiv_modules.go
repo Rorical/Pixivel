@@ -102,7 +102,7 @@ type TrendingTagsIllust struct {
 }
 
 type TrendingTagsIllustResponse struct {
-	TrendTags []TrendingTagsIllust `json:"trend_tags"`
+	TrendTags *[]TrendingTagsIllust `json:"trend_tags"`
 }
 
 type UserPreviews struct {

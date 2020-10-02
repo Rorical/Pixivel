@@ -298,11 +298,9 @@ type TrendingTagsIllustParams struct {
 }
 
 //TrendingTagsIllust ("day", "", 0)
-func (api *AppPixiv) TrendingTagsIllust() (*TrendingTagsIllust, error) {
+func (api *AppPixiv) TrendingTagsIllust() (*[]TrendingTagsIllust, error) {
 	path := "v1/trending-tags/illust"
-	data := &TrendingTagsIllustResponse{
-		TrendTags: *[]TrendingTagsIllust{},
-	}
+	data := &TrendingTagsIllustResponse{}
 	params := &TrendingTagsIllustParams{
 		Filter: "for_ios",
 	}

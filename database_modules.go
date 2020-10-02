@@ -10,7 +10,7 @@ type DataUser struct {
 	Name                string
 	Account             string
 	ProfileImagesMedium string
-	Illusts             []DataIllust `gorm:"foreignKey:User"`
+	Illusts             []DataIllust `gorm:"foreignKey:User;references:ID"`
 }
 type DataMetaPage struct {
 	ID           uint64 `gorm:"AUTO_INCREMENT,PRIMARY_KEY"`

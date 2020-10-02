@@ -1,6 +1,8 @@
 package pixivel
 
 import (
+	"errors"
+
 	"github.com/Rorical/pixiv"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -22,7 +24,7 @@ func GetDB() *Database {
 }
 
 func (self Database) Migrate() {
-	self.db.AutoMigrate(&DataIllust{}, &DataMetaPage{}, &DataUser{})
+	self.db.AutoMigrate(&DataIllust{}, &DataMetaPage{}, &DataUser{}, &DataTag{})
 }
 
 func (self Database) CreateIllust(illust *pixiv.Illust) {
@@ -69,6 +71,21 @@ func (self Database) CreateIllust(illust *pixiv.Illust) {
 	}
 	self.db.Create(&newIllust)
 
+	metaLen = len(illust.Tags)
+	var tagName string
+	var newDataTag DataTag
+	for j := 0; j < metaLen; j++ {
+		tagName = illust.Tags[j].Name
+		err := self.db.Model(&DataTag{}).Where("Name = ?", tagName).First(&newDataTag).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			newDataTag = DataTag{
+				Name: tagName,
+			}
+			self.db.Create(&newDataTag)
+		}
+		self.db.Model(&newIllust).Association("Tags").Append(&newDataTag)
+	}
+
 	newUser := &DataUser{
 		ID:                  illust.User.ID,
 		Name:                illust.User.Name,
@@ -78,8 +95,11 @@ func (self Database) CreateIllust(illust *pixiv.Illust) {
 	isExist = self.db.NewRecord(newUser)
 	if isExist {
 		self.db.Save(&newUser)
-		return
+	} else {
+		self.db.Create(&newUser)
 	}
+	self.db.Model(&newUser).Association("Illusts").Append(&newIllust)
+
 }
 
 func (self Database) QueryIllust(id uint64) *Illust {
