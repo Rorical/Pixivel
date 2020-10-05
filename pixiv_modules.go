@@ -9,7 +9,6 @@ type User struct {
 	ID            uint64     `json:"id"`
 	Name          string     `json:"name"`
 	Account       string     `json:"account"`
-	IsFollowed    bool       `json:"is_followed"`
 	ProfileImages UserImages `json:"profile_image_urls"`
 }
 type UserDetail struct {
@@ -20,43 +19,39 @@ type UserDetail struct {
 	// Workspace
 }
 type Tag struct {
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 }
 type Images struct {
-	SquareMedium string `json:"square_medium"`
-	Medium       string `json:"medium"`
-	Large        string `json:"large"`
-	Original     string `json:"original"`
+	SquareMedium string `json:"square_medium,omitempty"`
+	Medium       string `json:"medium,omitempty"`
+	Large        string `json:"large,omitempty"`
+	Original     string `json:"original,omitempty"`
 }
 type MetaSinglePage struct {
-	OriginalImageURL string `json:"original_image_url"`
+	OriginalImageURL string `json:"original_image_url,omitempty"`
 }
 type MetaPage struct {
-	Images Images `json:"image_urls"`
+	Images Images `json:"image_urls,omitempty"`
 }
 type Illust struct {
 	ID          uint64 `json:"id"`
-	Title       string `json:"title"`
-	Type        string `json:"type"`
-	Images      Images `json:"image_urls"`
-	Caption     string `json:"caption"`
-	Restrict    int    `json:"restrict"`
-	User        User   `json:"user"`
-	Tags        []Tag  `json:"tags"`
-	CreateData  string `json:"create_data"`
-	PageCount   int    `json:"page_count"`
-	Width       int    `json:"width"`
-	Height      int    `json:"height"`
-	SanityLevel int    `json:"sanity_level"`
+	Title       string `json:"title,omitempty"`
+	Type        string `json:"type,omitempty"`
+	Images      Images `json:"image_urls,omitempty"`
+	Caption     string `json:"caption,omitempty"`
+	Restrict    int    `json:"restrict,omitempty"`
+	User        User   `json:"user,omitempty"`
+	Tags        []Tag  `json:"tags,omitempty"`
+	PageCount   int    `json:"page_count,omitempty"`
+	Width       int    `json:"width,omitempty"`
+	Height      int    `json:"height,omitempty"`
+	SanityLevel int    `json:"sanity_level,omitempty"`
 	// TODO:
 	// Series `json:"series"`
-	MetaSinglePage MetaSinglePage `json:"meta_single_page"`
-	MetaPages      []MetaPage     `json:"meta_pages"`
-	TotalView      int            `json:"total_view"`
-	TotalBookmarks int            `json:"total_bookmarks"`
-	Visible        bool           `json:"visible"`
-	IsMuted        bool           `json:"is_muted"`
-	TotalComments  int            `json:"total_comments"`
+	MetaSinglePage MetaSinglePage `json:"meta_single_page,omitempty"`
+	MetaPages      []MetaPage     `json:"meta_pages,omitempty"`
+	TotalView      int            `json:"total_view,omitempty"`
+	TotalBookmarks int            `json:"total_bookmarks,omitempty"`
 }
 
 type IllustsResponse struct {

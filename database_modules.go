@@ -27,12 +27,10 @@ type DataIllust struct {
 	ImagesSquareMedium             string
 	ImagesMedium                   string
 	ImagesLarge                    string
-	ImagesOriginal                 string
 	Caption                        string
 	Restrict                       int
 	User                           uint64
 	Tags                           []DataTag `gorm:"many2many:illusts_tags;"`
-	CreateData                     string
 	PageCount                      int
 	Width                          int
 	Height                         int
@@ -41,9 +39,6 @@ type DataIllust struct {
 	MetaPages                      []DataMetaPage `gorm:"foreignKey:IllustID"`
 	TotalView                      int
 	TotalBookmarks                 int
-	Visible                        bool
-	IsMuted                        bool
-	TotalComments                  int
 }
 type DataUgoiraMetadata struct {
 	ID             uint64                    `gorm:"PRIMARY_KEY"`
