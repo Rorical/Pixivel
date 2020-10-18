@@ -11,24 +11,31 @@ type Database struct {
 	db *gorm.DB
 }
 
+type DatabaseSetting struct {
+	URI  string
+	Type string
+}
+
 var RECORD_NOT_FOUND = errors.New("No Result")
 
-func GetDB(uri string) *Database {
-	db, err := gorm.Open("sqlite3", uri)
+func GetDB() (*Database, *RedisPool) {
+	db, err := gorm.Open(databaseConf.Type, databaseConf.URI)
 	if err != nil {
 		panic("failed to connect database")
 	}
-	//defer db.Close()
+	redisPool := NewRedisPool()
+
 	return &Database{
 		db: db,
-	}
+	}, redisPool
+
 }
 
-func (self Database) Migrate() {
+func (self *Database) Migrate() {
 	self.db.AutoMigrate(&DataIllust{}, &DataMetaPage{}, &DataUser{}, &DataTag{}, &DataUgoiraMetadata{}, &DataUgoiraMetadataFrame{})
 }
 
-func (self Database) CreateIllust(illust *Illust) {
+func (self *Database) CreateIllust(illust *Illust) {
 	var err error
 	newIllust := DataIllust{
 		ID:                             illust.ID,
@@ -110,7 +117,7 @@ func (self Database) CreateIllust(illust *Illust) {
 
 }
 
-func (self Database) QueryIllust(id uint64) (*Illust, error) {
+func (self *Database) QueryIllust(id uint64) (*Illust, error) {
 
 	var illust DataIllust
 	var user DataUser
@@ -180,7 +187,7 @@ func (self Database) QueryIllust(id uint64) (*Illust, error) {
 	return &ResponseIllust, nil
 }
 
-func (self Database) DeleteIllust(id uint64) error {
+func (self *Database) DeleteIllust(id uint64) error {
 	var illust DataIllust
 	var user DataUser
 	var tags []DataTag
@@ -205,6 +212,6 @@ func (self Database) DeleteIllust(id uint64) error {
 	return nil
 }
 
-func (self Database) Close() {
+func (self *Database) Close() {
 	self.db.Close()
 }
