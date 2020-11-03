@@ -9,6 +9,7 @@ import (
 
 type Database struct {
 	db *gorm.DB
+	rd *RedisPool
 }
 
 type DatabaseSetting struct {
@@ -17,8 +18,10 @@ type DatabaseSetting struct {
 }
 
 var RECORD_NOT_FOUND = errors.New("No Result")
+var illustTypes2Num map[string]uint = map[string]uint{"illust": 0, "manga": 1, "ugoira": 2}
+var illustNum2Types map[uint]string = map[uint]string{0: "illust", 1: "manga", 2: "ugoira"}
 
-func GetDB() (*Database, *RedisPool) {
+func GetDB() *Database {
 	db, err := gorm.Open(databaseConf.Type, databaseConf.URI)
 	if err != nil {
 		panic("failed to connect database")
@@ -27,7 +30,8 @@ func GetDB() (*Database, *RedisPool) {
 
 	return &Database{
 		db: db,
-	}, redisPool
+		rd: redisPool,
+	}
 
 }
 
@@ -35,12 +39,12 @@ func (self *Database) Migrate() {
 	self.db.AutoMigrate(&DataIllust{}, &DataMetaPage{}, &DataUser{}, &DataTag{}, &DataUgoiraMetadata{}, &DataUgoiraMetadataFrame{})
 }
 
-func (self *Database) CreateIllust(illust *Illust) {
+func (self *Database) CreateIllust(illust *Illust) { // 看到这里，你应该知道，写我的那个傻X在这里卡了几个月没动过，对待这种人就应该把他的女装照刻入编译好的程序里！
 	var err error
 	newIllust := DataIllust{
 		ID:                             illust.ID,
 		Title:                          illust.Title,
-		Type:                           illust.Type,
+		Type:                           illustTypes2Num[illust.Type],
 		Caption:                        illust.Caption,
 		Restrict:                       illust.Restrict,
 		PageCount:                      illust.PageCount,
@@ -55,35 +59,23 @@ func (self *Database) CreateIllust(illust *Illust) {
 		TotalBookmarks:                 illust.TotalBookmarks,
 	}
 	self.db.Save(&newIllust)
+	illustModel := self.db.Model(&newIllust)
 
-	var metaLen int
+	metaLen := len(illust.MetaPages)
+	var singleMetaPage *DataMetaPage
 
-	metaLen = len(illust.MetaPages)
-	var newDataMetaPage *DataMetaPage
-	self.db.Model(&newIllust).Association("MetaPages").Clear()
+	self.db.Where(&DataMetaPage{IllustID: illust.ID}).Delete(DataMetaPage{})
 	for j := 0; j < metaLen; j++ {
-		newDataMetaPage = &DataMetaPage{}
-		err = self.db.Where(&DataMetaPage{Original: illust.MetaPages[j].Images.Original}).First(newDataMetaPage).Error
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			newDataMetaPage = &DataMetaPage{
-				IllustID:     illust.ID,
-				SquareMedium: illust.MetaPages[j].Images.SquareMedium,
-				Medium:       illust.MetaPages[j].Images.Medium,
-				Large:        illust.MetaPages[j].Images.Large,
-				Original:     illust.MetaPages[j].Images.Original,
-			}
-			self.db.Create(newDataMetaPage)
-		} else {
-			newDataMetaPage.SquareMedium = illust.MetaPages[j].Images.SquareMedium
-			newDataMetaPage.Medium = illust.MetaPages[j].Images.Medium
-			newDataMetaPage.Large = illust.MetaPages[j].Images.Large
-			newDataMetaPage.Original = illust.MetaPages[j].Images.Original
-			self.db.Save(newDataMetaPage)
+		singleMetaPage = &DataMetaPage{
+			IllustID:     illust.ID,
+			SquareMedium: illust.MetaPages[j].Images.SquareMedium,
+			Medium:       illust.MetaPages[j].Images.Medium,
+			Large:        illust.MetaPages[j].Images.Large,
+			Original:     illust.MetaPages[j].Images.Original,
 		}
-		self.db.Model(&newIllust).Association("MetaPages").Append(newDataMetaPage)
-
+		//self.db.Save(singleMetaPage)
+		illustModel.Association("MetaPages").Append(singleMetaPage)
 	}
-
 	metaLen = len(illust.Tags)
 	var tagName string
 	var newDataTag *DataTag
@@ -97,9 +89,6 @@ func (self *Database) CreateIllust(illust *Illust) {
 				Name: tagName,
 			}
 			self.db.Create(newDataTag)
-		} else {
-			newDataTag.Name = tagName
-			self.db.Save(newDataTag)
 		}
 		self.db.Model(&newIllust).Association("Tags").Append(newDataTag)
 	}
@@ -110,7 +99,7 @@ func (self *Database) CreateIllust(illust *Illust) {
 		Account:             illust.User.Account,
 		ProfileImagesMedium: illust.User.ProfileImages.Medium,
 	}
-	err = self.db.Where(&DataUser{ID: illust.User.ID}).First(&DataUser{}).Error
+	self.db.Where(&DataUser{ID: illust.User.ID}).First(&DataUser{})
 	self.db.Save(&newUser)
 
 	self.db.Model(&newUser).Association("Illusts").Append(&newIllust)
@@ -155,7 +144,7 @@ func (self *Database) QueryIllust(id uint64) (*Illust, error) {
 	ResponseIllust := Illust{
 		ID:          illust.ID,
 		Title:       illust.Title,
-		Type:        illust.Type,
+		Type:        illustNum2Types[illust.Type],
 		Caption:     illust.Caption,
 		Restrict:    illust.Restrict,
 		PageCount:   illust.PageCount,

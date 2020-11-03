@@ -23,7 +23,7 @@ type DataMetaPage struct {
 type DataIllust struct {
 	ID                             uint64 `gorm:"PRIMARY_KEY"`
 	Title                          string
-	Type                           string
+	Type                           uint
 	ImagesSquareMedium             string
 	ImagesMedium                   string
 	ImagesLarge                    string
