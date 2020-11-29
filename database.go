@@ -2,6 +2,7 @@ package pixivel
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -9,7 +10,9 @@ import (
 
 type Database struct {
 	db *gorm.DB
-	rd *RedisPool
+	//RedisPool *RedisPool
+	//Redis     *RedisClient
+	Leveldb *LevelDB
 }
 
 type DatabaseSetting struct {
@@ -24,13 +27,15 @@ var illustNum2Types map[uint]string = map[uint]string{0: "illust", 1: "manga", 2
 func GetDB() *Database {
 	db, err := gorm.Open(databaseConf.Type, databaseConf.URI)
 	if err != nil {
-		panic("failed to connect database")
+		panic(err)
 	}
-	redisPool := NewRedisPool()
-
+	//redisPool := NewRedisPool()
+	level := GetLevelDB()
 	return &Database{
 		db: db,
-		rd: redisPool,
+		//RedisPool: redisPool,
+		//Redis:     redisPool.NewRedisClient(),
+		Leveldb: level,
 	}
 
 }
@@ -39,8 +44,30 @@ func (self *Database) Migrate() {
 	self.db.AutoMigrate(&DataIllust{}, &DataMetaPage{}, &DataUser{}, &DataTag{}, &DataUgoiraMetadata{}, &DataUgoiraMetadataFrame{})
 }
 
-func (self *Database) CreateIllust(illust *Illust) { // 看到这里，你应该知道，写我的那个傻X在这里卡了几个月没动过，对待这种人就应该把他的女装照刻入编译好的程序里！
+func (self *Database) IsTheSame(face interface{}, hashKey string) bool {
+	hash := HashStruct(face)
+	bytehash := self.Leveldb.StringIn(hashKey)
+	res, err := self.Leveldb.Get(bytehash)
+	if err == self.Leveldb.NotFound {
+		self.Leveldb.Set(bytehash, self.Leveldb.StringIn(hash))
+		return false
+	}
+	strres := self.Leveldb.StringOut(res)
+	if err != nil {
+		panic(err)
+	}
+	if hash == strres {
+		return true
+	}
+	return false
+}
+
+func (self *Database) CreateIllust(illust *Illust) {
 	var err error
+	same := self.IsTheSame(illust, "i"+strconv.FormatUint(illust.ID, 10))
+	if same {
+		return
+	}
 	newIllust := DataIllust{
 		ID:                             illust.ID,
 		Title:                          illust.Title,
@@ -58,6 +85,7 @@ func (self *Database) CreateIllust(illust *Illust) { // 看到这里，你应该
 		TotalView:                      illust.TotalView,
 		TotalBookmarks:                 illust.TotalBookmarks,
 	}
+
 	self.db.Save(&newIllust)
 	illustModel := self.db.Model(&newIllust)
 
@@ -92,13 +120,18 @@ func (self *Database) CreateIllust(illust *Illust) { // 看到这里，你应该
 		}
 		self.db.Model(&newIllust).Association("Tags").Append(newDataTag)
 	}
-
 	newUser := &DataUser{
 		ID:                  illust.User.ID,
 		Name:                illust.User.Name,
 		Account:             illust.User.Account,
 		ProfileImagesMedium: illust.User.ProfileImages.Medium,
 	}
+	same = self.IsTheSame(illust.User, "u"+strconv.FormatUint(illust.User.ID, 10))
+	if same {
+		self.db.Model(&newUser).Association("Illusts").Append(&newIllust)
+		return
+	}
+
 	self.db.Where(&DataUser{ID: illust.User.ID}).First(&DataUser{})
 	self.db.Save(&newUser)
 

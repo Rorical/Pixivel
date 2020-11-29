@@ -3,10 +3,11 @@ package pixivel
 import (
 	"crypto/md5"
 	"encoding/json"
+	"fmt"
 )
 
 //Hash will md5 the struct
-func HashStruct(item interface{}) [16]byte {
+func HashStruct(item interface{}) string {
 	jsonBytes, _ := json.Marshal(item)
-	return md5.Sum(jsonBytes)
+	return fmt.Sprintf("%x", md5.Sum(jsonBytes))
 }
