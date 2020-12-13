@@ -1,4 +1,4 @@
-package pixivel
+package database
 
 type DataTag struct {
 	ID      uint64 `gorm:"AUTO_INCREMENT,PRIMARY_KEY"`

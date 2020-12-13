@@ -1,4 +1,4 @@
-package pixivel
+package database
 
 import (
 	"errors"
@@ -13,11 +13,6 @@ type Database struct {
 	//RedisPool *RedisPool
 	//Redis     *RedisClient
 	Leveldb *LevelDB
-}
-
-type DatabaseSetting struct {
-	URI  string
-	Type string
 }
 
 var RECORD_NOT_FOUND = errors.New("No Result")

@@ -1,4 +1,4 @@
-package pixivel
+package config
 
 import (
 	"crypto/md5"

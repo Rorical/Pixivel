@@ -1,4 +1,4 @@
-package pixivel
+package server
 
 import "github.com/gin-gonic/gin"
 
@@ -22,6 +22,11 @@ func (self *Server) Init() {
 	})
 }
 
+func (self *Server) TestRun() {
+	self.router.Run()
+}
+
 func (self *Server) Run() {
+	gin.SetMode(gin.ReleaseMode)
 	self.router.Run()
 }
