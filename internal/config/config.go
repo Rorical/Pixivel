@@ -7,28 +7,39 @@ import (
 	"github.com/spf13/viper"
 )
 
-type DatabaseSetting struct {
+type SQLSetting struct {
 	URI  string
 	Type string
 }
 
-var databaseConf = DatabaseSetting{}
-
-func init() {
-	viper.SetConfigName("config")
-	viper.AddConfigPath(".")
-	viper.SetConfigType("json")
-	err := viper.ReadInConfig()
-	if err != nil {
-		fmt.Printf("Conf error %s\n", err)
-		os.Exit(1)
-	}
-	databaseConf = DatabaseSetting{
-		Type: viper.GetString("sql.type"),
-		URI:  viper.GetString("sql.uri"),
-	}
+type HashDBSetting struct {
+	URI string
 }
 
-func DatabaseConf() DatabaseSetting {
-	return databaseConf
+type RedisSetting struct {
+	Host string
+	Port string
+}
+
+type Setting struct {
+	SQL    SQLSetting
+	HashDB HashDBSetting
+	Redis  RedisSetting
+}
+
+func Read() *Setting {
+	var settings Setting
+	v := viper.New()
+	v.SetConfigName("config")
+	v.AddConfigPath(".")
+	v.SetConfigType("json")
+	err := v.ReadInConfig()
+	if err != nil {
+		fmt.Printf("%s", err)
+		os.Exit(1)
+	}
+	if err := v.Unmarshal(&settings); err != nil {
+		fmt.Println(err)
+	}
+	return &settings
 }

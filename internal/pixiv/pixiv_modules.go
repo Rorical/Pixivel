@@ -1,4 +1,4 @@
-package pixivel
+package pixiv
 
 import "time"
 

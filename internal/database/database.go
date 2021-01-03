@@ -1,36 +1,38 @@
 package database
 
 import (
+	"Pixivel/internal/config"
+	"Pixivel/internal/levelgo"
+	"Pixivel/internal/pixiv"
 	"errors"
 	"strconv"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 type Database struct {
-	db *gorm.DB
-	//RedisPool *RedisPool
-	//Redis     *RedisClient
-	Leveldb *LevelDB
+	db     *gorm.DB
+	HashDB HashDB
 }
 
 var RECORD_NOT_FOUND = errors.New("No Result")
 var illustTypes2Num map[string]uint = map[string]uint{"illust": 0, "manga": 1, "ugoira": 2}
 var illustNum2Types map[uint]string = map[uint]string{0: "illust", 1: "manga", 2: "ugoira"}
 
-func GetDB() *Database {
-	db, err := gorm.Open(databaseConf.Type, databaseConf.URI)
+func GetDB(settings *config.Setting) *Database {
+	db, err := gorm.Open(settings.SQL.Type, settings.SQL.URI)
 	if err != nil {
 		panic(err)
 	}
 	//redisPool := NewRedisPool()
-	level := GetLevelDB()
+	leveldb := levelgo.RpcClient(settings.HashDB.URI)
+	leveldb.Connect()
 	return &Database{
 		db: db,
 		//RedisPool: redisPool,
 		//Redis:     redisPool.NewRedisClient(),
-		Leveldb: level,
+		HashDB: leveldb,
 	}
 
 }
@@ -40,14 +42,14 @@ func (self *Database) Migrate() {
 }
 
 func (self *Database) IsTheSame(face interface{}, hashKey string) bool {
-	hash := HashStruct(face)
-	bytehash := self.Leveldb.StringIn(hashKey)
-	res, err := self.Leveldb.Get(bytehash)
-	if err == self.Leveldb.NotFound {
-		self.Leveldb.Set(bytehash, self.Leveldb.StringIn(hash))
+	hash := config.HashStruct(face)
+	bytehash := config.StringIn(hashKey)
+	res, err := self.HashDB.Get(bytehash)
+	if self.HashDB.IsErrNotFound(err) {
+		self.HashDB.Set(bytehash, config.StringIn(hash))
 		return false
 	}
-	strres := self.Leveldb.StringOut(res)
+	strres := config.StringOut(res)
 	if err != nil {
 		panic(err)
 	}
@@ -57,7 +59,7 @@ func (self *Database) IsTheSame(face interface{}, hashKey string) bool {
 	return false
 }
 
-func (self *Database) CreateIllust(illust *Illust) {
+func (self *Database) CreateIllust(illust *pixiv.Illust) {
 	var err error
 	same := self.IsTheSame(illust, "i"+strconv.FormatUint(illust.ID, 10))
 	if same {
@@ -134,7 +136,7 @@ func (self *Database) CreateIllust(illust *Illust) {
 
 }
 
-func (self *Database) QueryIllust(id uint64) (*Illust, error) {
+func (self *Database) QueryIllust(id uint64) (*pixiv.Illust, error) {
 
 	var illust DataIllust
 	var user DataUser
@@ -149,18 +151,18 @@ func (self *Database) QueryIllust(id uint64) (*Illust, error) {
 	self.db.First(&user, illust.User)
 
 	lena := len(tags)
-	newTags := make([]Tag, lena)
+	newTags := make([]pixiv.Tag, lena)
 	for j := 0; j < lena; j++ {
-		newTags[j] = Tag{
+		newTags[j] = pixiv.Tag{
 			Name: tags[j].Name,
 		}
 	}
 
 	lena = len(metapages)
-	newMetaPages := make([]MetaPage, lena)
+	newMetaPages := make([]pixiv.MetaPage, lena)
 	for j := 0; j < lena; j++ {
-		newMetaPages[j] = MetaPage{
-			Images: Images{
+		newMetaPages[j] = pixiv.MetaPage{
+			Images: pixiv.Images{
 				SquareMedium: metapages[j].SquareMedium,
 				Medium:       metapages[j].Medium,
 				Large:        metapages[j].Large,
@@ -169,7 +171,7 @@ func (self *Database) QueryIllust(id uint64) (*Illust, error) {
 		}
 	}
 
-	ResponseIllust := Illust{
+	ResponseIllust := pixiv.Illust{
 		ID:          illust.ID,
 		Title:       illust.Title,
 		Type:        illustNum2Types[illust.Type],
@@ -180,19 +182,19 @@ func (self *Database) QueryIllust(id uint64) (*Illust, error) {
 		Height:      illust.Height,
 		SanityLevel: illust.SanityLevel,
 		Tags:        newTags,
-		Images: Images{
+		Images: pixiv.Images{
 			SquareMedium: illust.ImagesSquareMedium,
 			Medium:       illust.ImagesMedium,
 			Large:        illust.ImagesLarge,
 		},
-		MetaSinglePage: MetaSinglePage{
+		MetaSinglePage: pixiv.MetaSinglePage{
 			OriginalImageURL: illust.MetaSinglePageOriginalImageURL,
 		},
-		User: User{
+		User: pixiv.User{
 			ID:      user.ID,
 			Name:    user.Name,
 			Account: user.Account,
-			ProfileImages: UserImages{
+			ProfileImages: pixiv.UserImages{
 				Medium: user.ProfileImagesMedium,
 			},
 		},
@@ -231,4 +233,5 @@ func (self *Database) DeleteIllust(id uint64) error {
 
 func (self *Database) Close() {
 	self.db.Close()
+	self.HashDB.Close()
 }

@@ -1,0 +1,9 @@
+{
+    "SQL":{
+        "URI":"",
+        "Type":""
+    },
+    "HashDB":{
+        "URI":"localhost:8192"
+    }
+}

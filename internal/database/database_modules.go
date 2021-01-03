@@ -1,5 +1,14 @@
 package database
 
+type HashDB interface {
+	Get(key []byte) ([]byte, error)
+	Set(key []byte, value []byte) error
+	Has(key []byte) (bool, error)
+	Del(key []byte) error
+	Close()
+	IsErrNotFound(err error) bool
+}
+
 type DataTag struct {
 	ID      uint64 `gorm:"AUTO_INCREMENT,PRIMARY_KEY"`
 	Name    string
