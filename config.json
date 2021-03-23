@@ -1,9 +1,20 @@
 {
     "SQL":{
-        "URI":"",
-        "Type":""
+        "URI":"pixivel:pixivel@tcp(localhost:3306)/pixivel?parseTime=true"
     },
     "HashDB":{
         "URI":"localhost:8192"
+    },
+    "Pixiv":{
+        "RefreshToken":"55qyvp7_rVLQqj5Ond77PGgJff-_CdrZWSCTaKsirvc",
+        "AccessToken":"x_WXz9S_BHHCA7_ofL4MlsI75aUAUgFR_TeBu4vdElA"
+    },
+    "Filter":{
+        "File":"cuckoo.bitmap"
+    },
+    "Redis":{
+        "URI":"redis://localhost:6379/0",
+        "MaxIdle":5,
+        "IdleTimeout":600
     }
 }

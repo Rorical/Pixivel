@@ -17,28 +17,43 @@ type HashDBSetting struct {
 }
 
 type RedisSetting struct {
-	Host string
-	Port string
+	URI         string
+	MaxIdle     int
+	IdleTimeout int
+	Password    string
+}
+
+type PixivSetting struct {
+	RefreshToken string
+	AccessToken  string
+}
+
+type FilterSetting struct {
+	File string
 }
 
 type Setting struct {
 	SQL    SQLSetting
 	HashDB HashDBSetting
 	Redis  RedisSetting
+	Pixiv  PixivSetting
+	Filter FilterSetting
+}
+
+func init() {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.SetConfigType("json")
 }
 
 func Read() *Setting {
 	var settings Setting
-	v := viper.New()
-	v.SetConfigName("config")
-	v.AddConfigPath(".")
-	v.SetConfigType("json")
-	err := v.ReadInConfig()
+	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Printf("%s", err)
 		os.Exit(1)
 	}
-	if err := v.Unmarshal(&settings); err != nil {
+	if err := viper.Unmarshal(&settings); err != nil {
 		fmt.Println(err)
 	}
 	return &settings

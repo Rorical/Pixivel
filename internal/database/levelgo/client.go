@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log"
 
-	levelrpc "Pixivel/internal/levelgo/levelrpc"
+	levelrpc "Pixivel/internal/database/levelgo/levelrpc"
 
 	grpc "google.golang.org/grpc"
 )
@@ -24,7 +24,7 @@ func RpcClient(host string) *LevelRpcClient {
 
 //Connect the server
 func (self *LevelRpcClient) Connect() {
-	conn, err := grpc.Dial(self.Host)
+	conn, err := grpc.Dial(self.Host, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Connect Fail: %v", err)
 	}

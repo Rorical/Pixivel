@@ -6,6 +6,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"unsafe"
 )
 
 //Hash will md5 the struct
@@ -15,11 +17,12 @@ func HashStruct(item interface{}) string {
 }
 
 func StringOut(bye []byte) string {
-	return string(bye)
+	return *(*string)(unsafe.Pointer(&bye))
 }
 
 func StringIn(strings string) []byte {
-	return []byte(strings)
+	x := (*[2]uintptr)(unsafe.Pointer(&strings))
+	return *(*[]byte)(unsafe.Pointer(&[3]uintptr{x[0], x[1], x[1]}))
 }
 
 func IntIn(n int) []byte {
@@ -48,4 +51,34 @@ func UintOut(bye []byte) uint {
 	var data uint64
 	binary.Read(bytebuff, binary.BigEndian, &data)
 	return uint(data)
+}
+
+func Itoa(a interface{}) string {
+	if v, p := a.(int); p {
+		return strconv.Itoa(v)
+	}
+	if v, p := a.(int16); p {
+		return strconv.Itoa(int(v))
+	}
+	if v, p := a.(int32); p {
+		return strconv.Itoa(int(v))
+	}
+	if v, p := a.(uint); p {
+		return strconv.Itoa(int(v))
+	}
+	if v, p := a.(float32); p {
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	}
+	if v, p := a.(float64); p {
+		return strconv.FormatFloat(v, 'f', -1, 32)
+	}
+	return ""
+}
+
+func Atoi(s string) uint64 {
+	i, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
+		return 0
+	}
+	return i
 }

@@ -1,5 +1,7 @@
 package database
 
+import "time"
+
 type HashDB interface {
 	Get(key []byte) ([]byte, error)
 	Set(key []byte, value []byte) error
@@ -10,8 +12,8 @@ type HashDB interface {
 }
 
 type DataTag struct {
-	ID      uint64 `gorm:"AUTO_INCREMENT,PRIMARY_KEY"`
-	Name    string
+	ID      uint64       `gorm:"AUTO_INCREMENT,PRIMARY_KEY"`
+	Name    string       `gorm:"uniqueIndex"`
 	Illusts []DataIllust `gorm:"many2many:illusts_tags;"`
 }
 type DataUser struct {
@@ -29,25 +31,38 @@ type DataMetaPage struct {
 	Large        string
 	Original     string
 }
+
+type DataIllustCollection struct {
+	ID      uint64       `gorm:"AUTO_INCREMENT,PRIMARY_KEY"`
+	Illusts []DataIllust `gorm:"many2many:illust_collection;"`
+}
+
+type DataRankIllusts struct {
+	ID      uint64 `gorm:"AUTO_INCREMENT,PRIMARY_KEY"`
+	Type    uint
+	Date    time.Time
+	Illusts DataIllustCollection `gorm:"foreignKey:ID"`
+}
+
 type DataIllust struct {
-	ID                             uint64 `gorm:"PRIMARY_KEY"`
+	ID                             uint64 `gorm:"PRIMARY_KEY,many2many:illusts_illust"`
 	Title                          string
 	Type                           uint
 	ImagesSquareMedium             string
 	ImagesMedium                   string
 	ImagesLarge                    string
 	Caption                        string
-	Restrict                       int
 	User                           uint64
+	CreateDate                     time.Time
 	Tags                           []DataTag `gorm:"many2many:illusts_tags;"`
-	PageCount                      int
-	Width                          int
-	Height                         int
-	SanityLevel                    int
+	PageCount                      uint
+	Width                          uint
+	Height                         uint
+	SanityLevel                    uint
 	MetaSinglePageOriginalImageURL string
 	MetaPages                      []DataMetaPage `gorm:"foreignKey:IllustID"`
-	TotalView                      int
-	TotalBookmarks                 int
+	TotalView                      uint
+	TotalBookmarks                 uint
 }
 type DataUgoiraMetadata struct {
 	ID             uint64                    `gorm:"PRIMARY_KEY"`

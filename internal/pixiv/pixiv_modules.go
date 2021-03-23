@@ -34,24 +34,24 @@ type MetaPage struct {
 	Images Images `json:"image_urls,omitempty"`
 }
 type Illust struct {
-	ID          uint64 `json:"id"`
-	Title       string `json:"title,omitempty"`
-	Type        string `json:"type,omitempty"`
-	Images      Images `json:"image_urls,omitempty"`
-	Caption     string `json:"caption,omitempty"`
-	Restrict    int    `json:"restrict,omitempty"`
-	User        User   `json:"user,omitempty"`
-	Tags        []Tag  `json:"tags,omitempty"`
-	PageCount   int    `json:"page_count,omitempty"`
-	Width       int    `json:"width,omitempty"`
-	Height      int    `json:"height,omitempty"`
-	SanityLevel int    `json:"sanity_level,omitempty"`
+	ID          uint64    `json:"id"`
+	Title       string    `json:"title,omitempty"`
+	Type        string    `json:"type,omitempty"`
+	Images      Images    `json:"image_urls,omitempty"`
+	Caption     string    `json:"caption,omitempty"`
+	User        User      `json:"user,omitempty"`
+	Tags        []Tag     `json:"tags,omitempty"`
+	PageCount   uint      `json:"page_count,omitempty"`
+	Width       uint      `json:"width,omitempty"`
+	Height      uint      `json:"height,omitempty"`
+	SanityLevel uint      `json:"sanity_level,omitempty"`
+	CreateDate  time.Time `json:"create_date,omitempty"`
 	// TODO:
 	// Series `json:"series"`
 	MetaSinglePage MetaSinglePage `json:"meta_single_page,omitempty"`
 	MetaPages      []MetaPage     `json:"meta_pages,omitempty"`
-	TotalView      int            `json:"total_view,omitempty"`
-	TotalBookmarks int            `json:"total_bookmarks,omitempty"`
+	TotalView      uint           `json:"total_view,omitempty"`
+	TotalBookmarks uint           `json:"total_bookmarks,omitempty"`
 }
 
 type IllustsResponse struct {
@@ -77,7 +77,7 @@ type PixivError struct {
 type ParentComment struct {
 }
 type IllustComments struct {
-	ID            int           `json:"id"`
+	ID            uint          `json:"id"`
 	Comment       string        `json:"comment"`
 	Date          time.Time     `json:"date"`
 	User          User          `json:"user"`
@@ -85,7 +85,7 @@ type IllustComments struct {
 	//_       _         `json:"_"`
 }
 type IllustCommentsResponse struct {
-	TotalComments int              `json:"total_comments"`
+	TotalComments uint             `json:"total_comments"`
 	Comments      []IllustComments `json:"comments"`
 	NextURL       string           `json:"next_url"`
 }
@@ -112,7 +112,7 @@ type UserResponse struct {
 }
 
 type UgoiraMetadataFrame struct {
-	Delay int    `json:"delay"`
+	Delay uint   `json:"delay"`
 	File  string `json:"file"`
 }
 type UgoiraMetadataZipUrls struct {

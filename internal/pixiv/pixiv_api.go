@@ -36,7 +36,7 @@ func genClientHash(clientTime string) string {
 
 //BasePixivAPI is basic tools which will be called by others
 func BasePixivAPI() *BasePixiv {
-	s := sling.New().Base(authHosts).Set("User-Agent", "PixivAndroidApp/5.0.64 (Android 6.0)")
+	s := sling.New().Base(authHosts).Set("User-Agent", "PixivAndroidApp/5.0.115 (Android 6.0)")
 	return &BasePixiv{
 		sling:         s,
 		UserID:        "",
@@ -133,7 +133,7 @@ func (api *BasePixiv) Auth(params *AuthParams) (*AuthInfo, error) {
 	}
 	api.TokenDeadline = time.Now().Add(time.Duration(res.Response.ExpiresIn) * time.Second)
 	api.AccessToken = res.Response.AccessToken
-	//fmt.Println(api.AccessToken)
+
 	if api.AccessChangeHook != nil {
 		api.AccessChangeHook(api.AccessToken)
 
